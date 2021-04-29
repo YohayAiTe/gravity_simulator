@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kepler's Laws Gravity Simulator</title>
+
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+        }
+
+        div {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            position: relative;
+        }
+
+        canvas {
+            background-color: black;
+            position: absolute;
+        }
+    </style>
+
+    <script src="vector.js"></script>
+    <script src="body.js"></script>
+    <script src="simulation.js"></script>
+</head>
+<body>
+    <canvas id="render-canvas"></canvas>
+    <div style="width: 350px; right: 0; position: absolute">
+        <h3>Bodies</h3>
+        <label><input type="checkbox" value="sun" checked> The Sun</label><br>
+        <h4>Planets</h4>
+        <label><input type="checkbox" value="mercury" checked> Mercury</label><br>
+        <label><input type="checkbox" value="venus" checked> Venus</label><br>
+        <label><input type="checkbox" value="earth" checked> Earth</label><br>
+        <label><input type="checkbox" value="mars" checked> Mars</label><br>
+        <label><input type="checkbox" value="jupiter"> Jupiter</label><br>
+        <label><input type="checkbox" value="saturn"> Saturn</label><br>
+        <label><input type="checkbox" value="uranus"> Uranus</label><br>
+        <label><input type="checkbox" value="neptune"> Neptune</label><br>
+        <h4>Moons</h4>
+        <label><input type="checkbox" value="moon" checked> The Moon(Earth)</label><br>
+        <label><input type="checkbox" value="phobos"> Phobos(Mars)</label><br>
+        <label><input type="checkbox" value="deimos"> Deimos(Mars)</label><br>
+
+        <h3>Settings</h3>
+        <label>&Delta;t[sec]: <input type="number" id="dt-input" value="100"></label><br>
+        <label>Trail Length: <input type="number" id="tl-input" value="10000"></label><br>
+        <label>Calculations per Trail: <input type="number" id="cpt-input" value="480"></label><br>
+        <label>Calculations per Frame: <input type="number" id="cpf-input" value="480"></label><br>
+
+        <input type="button" value="Recreate" onclick="recreate()"><br>
+
+        <label id="time-label">Time: </label><br>
+    </div>
+</body>
+<script>
+    /** @type {HTMLCanvasElement}*/
+    const canvas = document.getElementById("render-canvas")
+    canvas.width = window.innerWidth - 350
+    canvas.height = window.innerHeight
+    const ctx = canvas.getContext("2d")
+
+    ctx.translate(canvas.width / 2, canvas.height / 2)
+    let ctxScale = Math.min(canvas.width, canvas.height) / (5 * 1.52e11)
+    ctx.scale(ctxScale, ctxScale)
+    let simulation = new Simulation(ctx, 1e2, 1e4, 480, 480, ["sun", "mercury", "venus", "earth", "mars", "moon"])
+
+    function recreate() {
+        let bodies = []
+        /**@type {NodeListOf<HTMLInputElement>}*/
+        let checkBoxes = document.querySelectorAll("input[type=checkbox]")
+        for (let i = 0; i < checkBoxes.length; i++) if (checkBoxes[i].checked) bodies.push(checkBoxes[i].value)
+        simulation = new Simulation(ctx,
+            parseInt(document.getElementById("dt-input").value),
+            parseInt(document.getElementById("tl-input").value),
+            parseInt(document.getElementById("cpt-input").value),
+            parseInt(document.getElementById("cpf-input").value),
+            bodies)
+    }
+
+    let requestAnimation = window.requestAnimationFrame(frameFunc)
+
+    function frameFunc() {
+        simulation.frame()
+        let years = Math.floor(simulation.time / (60 * 60 * 24 * 30 * 12))
+        let months = Math.floor(simulation.time / (60 * 60 * 24 * 30)) % 12
+        let days = Math.floor(simulation.time / (60 * 60 * 24)) % 30
+        let hour = Math.floor(simulation.time / (60 * 60)) % 24
+        let minute = Math.floor(simulation.time / (60)) % 60
+        let second = simulation.time % 60
+        document.getElementById("time-label").innerText = `Time: ${years} years, ${months} months, ${days} days, ${hour}:${minute}:${second}`
+        requestAnimation = window.requestAnimationFrame(frameFunc)
+    }
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === " ") {
+            event.preventDefault()
+            simulation.isRunning = !simulation.isRunning
+        }
+    })
+    document.addEventListener("contextmenu", function (event) {
+        event.preventDefault()
+        const rect = canvas.getBoundingClientRect()
+        const matrix = ctx.getTransform();
+        const mouseX = event.clientX - rect.left
+        const mouseY = event.clientY - rect.top
+        const x = (mouseX - matrix.e) / matrix.a
+        const y = (mouseY - matrix.f) / matrix.d
+
+        let closestBody = null, closestDistance2 = Infinity;
+        for (const body of simulation.bodies) {
+            let clickPos = new Vector(x, y)
+            if (simulation.trackedBody !== null) clickPos = clickPos.add(simulation.trackedBody.postion)
+            let clickDistance2 = body.postion.sub(clickPos).length2
+            if (clickDistance2 < body.radius * body.radius && clickDistance2 < closestDistance2) {
+                closestBody = body
+                closestDistance2 = clickDistance2
+            }
+        }
+        simulation.trackedBody = closestBody
+    })
+    document.addEventListener("wheel", function (event) {
+        let scaleFactor = Math.exp(-event.deltaY * 0.001)
+        ctx.scale(scaleFactor, scaleFactor)
+    })
+</script>
+</html>
