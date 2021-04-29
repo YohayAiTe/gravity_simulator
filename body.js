@@ -1,6 +1,7 @@
 class Body {
     /**
      *
+     * @param {string} name
      * @param {Vector} position
      * @param {number} mass
      * @param {Vector} velocity
@@ -9,7 +10,8 @@ class Body {
      * @param {number} [trailLength=100] - the maximum number of points remembered. If is also used when the object is the reference.
      * @param {number} [trailSteps=1] - the of updates per trail point
      */
-    constructor(position, mass, velocity, radius, color, trailLength = 100, trailSteps = 1) {
+    constructor(name, position, mass, velocity, radius, color, trailLength = 100, trailSteps = 1) {
+        this.name = name
         this.postion = position
         this.mass = mass
         this.velocity = velocity
@@ -56,7 +58,7 @@ class Body {
      * @return {Body}
      */
     #getNullReference() {
-        let reference = new Body(new Vector(), 0, new Vector(), 0, "", this.trail.length)
+        let reference = new Body("", new Vector(), 0, new Vector(), 0, "", this.trail.length)
         for (let i = 0; i < this.trail.length; i++) reference.trail.push(new Vector())
         return reference
     }
