@@ -1,7 +1,14 @@
 class Simulation {
+    /**
+     * A type used to describe the creation parameters of a body.
+     * @typedef {{color: string, mass: number, name: string, position: Vector, velocity: Vector, radius: number}} Simulation~CreationParameter
+     */
+
+    /**@type {Simulation~CreationParameter}*/
     #sunParameters = {
         name: "The Sun", position: new Vector(), mass: 1.989e30, velocity: new Vector(), radius: 6.96e8, color: "yellow"
     }
+    /**@type {Object.<string, Simulation~CreationParameter>}*/
     #planetParameters = {
         "mercury": {
             name: "Mercury",
@@ -68,7 +75,7 @@ class Simulation {
             color: "darkblue"
         },
     }
-
+    /**@type {Object.<string, Simulation~CreationParameter>}*/
     #moonParameters = {
         "moon": {
             name: "The Moon (Earth)",
@@ -97,13 +104,13 @@ class Simulation {
     }
 
     /**
-     *
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {number} dt
-     * @param {number} trailLength
-     * @param {number} calculationsPerTrail
-     * @param {number} calculationsPerFrame
-     * @param {string[]} bodyNames
+     * Creates a new simulation.
+     * @param {CanvasRenderingContext2D} ctx - the context the simulation uses
+     * @param {number} dt - the time-step to take each calculation
+     * @param {number} trailLength - the maximum number of points in every planet's trail
+     * @param {number} calculationsPerTrail - the number of steps needed to add a point to the trail
+     * @param {number} calculationsPerFrame - the number of calculations to do every frame
+     * @param {string[]} bodyNames - the names of the bodies to create
      */
     constructor(ctx, dt, trailLength, calculationsPerTrail, calculationsPerFrame, bodyNames) {
         this.isRunning = true
@@ -139,8 +146,10 @@ class Simulation {
         this.trackedBody = null
     }
 
+    /**
+     * Calculates the step and updates the simulation.
+     */
     #calculate() {
-        console.log()
         for (const body1 of this.bodies) {
             for (const body2 of this.bodies) {
                 if (body1 !== body2) body1.applyForceFromBody(body2)
@@ -150,6 +159,9 @@ class Simulation {
         this.time += this.dt
     }
 
+    /**
+     * Renders the simulation.
+     */
     #render() {
         this.ctx.save()
         this.ctx.setTransform(1, 0, 0, 1, 0, 0)
@@ -166,6 +178,9 @@ class Simulation {
         for (const planetMoon of this.moons) planetMoon.renderBody(this.ctx, this.trackedBody)
     }
 
+    /**
+     * Executes the number of necessary calculations and renders the result to the canvas.
+     */
     frame() {
         if (this.isRunning) {
             for (let i = 0; i < this.calculationsPerFrame; i++) this.#calculate()

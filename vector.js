@@ -1,6 +1,6 @@
 class Vector {
     /**
-     *
+     * Creates a new vector using cartesian coordinates.
      * @param {number} [x=0]
      * @param {number} [y=0]
      */
@@ -10,9 +10,9 @@ class Vector {
     }
 
     /**
-     *
-     * @param {number} r
-     * @param {number} theta
+     * Creates a Vector with length r and angle theta.
+     * @param {number} r - the length
+     * @param {number} theta - the angle(in radians)
      * @returns {Vector}
      */
     static fromPolar(r, theta) {
@@ -20,7 +20,7 @@ class Vector {
     }
 
     /**
-     *
+     * Returns the angle of the Vector(in radians).
      * @returns {number}
      */
     get angle() {
@@ -28,7 +28,7 @@ class Vector {
     }
 
     /**
-     *
+     * Returns the length of the Vector squared.
      * @returns {number}
      */
     get length2() {
@@ -36,7 +36,7 @@ class Vector {
     }
 
     /**
-     *
+     * Returns the length of the Vector.
      * @returns {number}
      */
     get length() {
@@ -44,8 +44,8 @@ class Vector {
     }
 
     /**
-     *
-     * @param {number} s
+     * Returns a new Vector scaled by s.
+     * @param {number} s - the scale factor
      * @returns {Vector}
      */
     scale(s) {
@@ -53,8 +53,8 @@ class Vector {
     }
 
     /**
-     *
-     * @param {Vector} other
+     * Returns a new Vector that is sum of other and this.
+     * @param {Vector} other - the Vector to add
      * @returns {Vector}
      */
     add(other) {
@@ -62,8 +62,8 @@ class Vector {
     }
 
     /**
-     *
-     * @param {Vector} other
+     * Returns a new Vector that the difference between this and other.
+     * @param {Vector} other - the Vector to be subtracted(minuend)
      * @returns {Vector}
      */
     sub(other) {
@@ -71,7 +71,7 @@ class Vector {
     }
 
     /**
-     *
+     * Returns a new Vector that is the negative of this.
      * @returns {Vector}
      */
     neg() {
@@ -79,8 +79,8 @@ class Vector {
     }
 
     /**
-     *
-     * @param {Vector} other
+     * Returns the dot product of this with the Vector other.
+     * @param {Vector} other - the Vector to calculate the dot product with.
      * @returns {number}
      */
     dot(other) {

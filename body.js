@@ -1,16 +1,16 @@
 class Body {
     /**
-     *
-     * @param {string} name
-     * @param {Vector} position
-     * @param {number} mass
-     * @param {Vector} velocity
-     * @param {number} radius
+     * Creates a new Body.
+     * @param {string} name - the name of the Body
+     * @param {Vector} position - the position of the Body
+     * @param {number} mass - the mass of the Body
+     * @param {Vector} velocity - the initial velocity of the Body
+     * @param {number} radius - the radius of the body(used only for rendering)
      * @param {string} color - must be a color for CanvasRenderingContext2D
-     * @param {number} [trailLength=100] - the maximum number of points remembered. If is also used when the object is the reference.
-     * @param {number} [trailSteps=1] - the of updates per trail point
+     * @param {number} trailLength - the maximum number of points in the trail(also used when the object is the reference)
+     * @param {number} trailSteps - the number of updates needed per trail point
      */
-    constructor(name, position, mass, velocity, radius, color, trailLength = 100, trailSteps = 1) {
+    constructor(name, position, mass, velocity, radius, color, trailLength, trailSteps) {
         this.name = name
         this.postion = position
         this.mass = mass
@@ -27,8 +27,10 @@ class Body {
     }
 
     /**
-     *
-     * @param {Body} other
+     * Calculates and applies the force Body other exerts on this. The force is calculated only on this, so in order to
+     * comply with Newton's third law other.applyForceFromBody(this) needs to be called. The function does not move the
+     * body.
+     * @param {Body} other - the body that exerts the force
      */
     applyForceFromBody(other) {
         const G = 6.67e-11
@@ -37,8 +39,10 @@ class Body {
     }
 
     /**
-     *
-     * @param {number} dt
+     * Updates the position of this, according to its velocity and the forces exerted with applyForceFromBody.
+     * Adds a trail point if needed. The function also resets the forces exerted on this, so applyForceFromBody needs
+     * to be called between consecutive calls. The function approximates the position using the time-step dt.
+     * @param {number} dt - time step(in seconds)
      */
     updatePosition(dt) {
         if (this.currentTrailStep === 0) {
@@ -54,7 +58,7 @@ class Body {
 
 
     /**
-     *
+     * Returns a Body that can be used to view the world when no object is tracked.
      * @return {Body}
      */
     #getNullReference() {
@@ -64,9 +68,9 @@ class Body {
     }
 
     /**
-     *
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {?Body} reference
+     * Renders the Body on the given ctx, with relation to reference.
+     * @param {CanvasRenderingContext2D} ctx - the context to use for drawing
+     * @param {?Body} reference - the reference object
      */
     renderBody(ctx, reference) {
         if (reference === null) reference = this.#getNullReference()
@@ -79,9 +83,9 @@ class Body {
     }
 
     /**
-     *
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {?Body} reference
+     * Renders the Body's trail with relation to reference
+     * @param {CanvasRenderingContext2D} ctx - the context to use for drawing
+     * @param {?Body} reference - the reference object
      */
     renderTrail(ctx, reference) {
         if (reference === null) reference = this.#getNullReference()
