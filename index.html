@@ -66,8 +66,9 @@
     <div id="settings-div">
         <h3>Info</h3>
         <p>
-            This is a simplified simulation of the solar system. The simulation uses only Newton's Law of Universal
-            Gravity, which says the gravitational force between two masses is
+            This is a simplified simulation of the solar system. The simulation uses only
+            <a href="https://en.wikipedia.org/wiki/Newton%27s_law_of_universal_gravitation">Newton's Law of Universal
+                Gravity</a>, which states the gravitational force between two masses is
             F=G&sdot;m<sub>1</sub>&sdot;m<sub>2</sub>/r<sup>2</sup>
             (where G=6.67&sdot;10<sup>-11</sup> is a constant, m<sub>1</sub> and m<sub>2</sub> are the masses and r is
             the distance between the masses).
@@ -115,10 +116,6 @@
 
         <br>
         <button value="Recreate" onclick="recreate()">Recreate</button>
-        <br>
-
-        <label id="time-label">Time: </label><br>
-        <label id="body-label"></label><br>
     </div>
     <canvas id="render-canvas" style="left: 350px"></canvas>
 </body>
@@ -133,6 +130,10 @@
     let ctxScale = Math.min(canvas.width, canvas.height) / (5 * 1.52e11)
     ctx.scale(ctxScale, ctxScale)
     let simulation = new Simulation(ctx, 1e2, 1e4, 480, 480, ["sun", "mercury", "venus", "earth", "mars", "moon"])
+    /** @type {{position: Vector, isDown: boolean, clickPosition: Vector}} */
+    let mouse = {position: new Vector(), isDown: false, clickPosition: new Vector()};
+    /** @type {?Body} */
+    let hoverBody = null
 
     function recreate() {
         let bodies = []
@@ -151,32 +152,44 @@
 
     function frameFunc() {
         simulation.frame()
+
+        let originalMatrix = ctx.getTransform()
+        ctx.save()
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
+        ctx.font = "15px Monospace"
+        ctx.textBaseline = "bottom"
+        ctx.textAlign = "end"
+        ctx.fillStyle = "white"
         let years = Math.floor(simulation.time / (60 * 60 * 24 * 30 * 12))
         let months = Math.floor(simulation.time / (60 * 60 * 24 * 30)) % 12
         let days = Math.floor(simulation.time / (60 * 60 * 24)) % 30
-        let hour = Math.floor(simulation.time / (60 * 60)) % 24
-        let minute = Math.floor(simulation.time / (60)) % 60
-        let second = simulation.time % 60
-        document.getElementById("time-label").innerText = `Time: ${years} years, ${months} months, ${days} days, ` +
-            `${hour >= 10 ? hour : "0" + hour}:${minute >= 10 ? minute : "0" + minute}:${second >= 10 ? second : "0" + second}`
+        ctx.fillText(`${years} years,${months >= 10 ? months : " " + months} months,${days >= 10 ? days : " " + days} days`,
+            canvas.width - 10, canvas.height - 10)
+
+        hoverBody = getClosestBodyToMouse(originalMatrix)
+        if (hoverBody !== null) {
+            ctx.textAlign = "start"
+            ctx.fillStyle = hoverBody.color
+            ctx.fillText(hoverBody.name, 10, canvas.height - 10)
+
+        }
+        ctx.restore()
         requestAnimation = window.requestAnimationFrame(frameFunc)
     }
 
     /**
      *
-     * @param {number} mouseX
-     * @param {number} mouseY
+     * @param {DOMMatrix} matrix - the transformation matrix
      * @return {?Body}
      */
-    function getClosestBodyClick(mouseX, mouseY) {
-        const matrix = ctx.getTransform()
-        const x = (mouseX - matrix.e) / matrix.a
-        const y = (mouseY - matrix.f) / matrix.d
+    function getClosestBodyToMouse(matrix) {
+        let clickPos = mouse.position.sub(new Vector(matrix.e, matrix.f))
+        clickPos.x /= matrix.a
+        clickPos.y /= matrix.d
+        if (simulation.trackedBody !== null) clickPos = clickPos.add(simulation.trackedBody.postion)
 
         let closestBody = null, closestDistance2 = Infinity;
         for (const body of simulation.bodies) {
-            let clickPos = new Vector(x, y)
-            if (simulation.trackedBody !== null) clickPos = clickPos.add(simulation.trackedBody.postion)
             let clickDistance2 = body.postion.sub(clickPos).length2
             if (clickDistance2 < body.radius * body.radius && clickDistance2 < closestDistance2) {
                 closestBody = body
@@ -192,29 +205,30 @@
             simulation.isRunning = !simulation.isRunning
         }
     })
+    document.addEventListener("mousedown", function () {
+        mouse.clickPosition = mouse.position.copy()
+        mouse.isDown = true
+    })
+    document.addEventListener("mouseup", function () {
+        mouse.isDown = false
+    })
     document.addEventListener("contextmenu", function (event) {
         event.preventDefault()
-        const rect = canvas.getBoundingClientRect()
-        const mouseX = event.clientX - rect.left
-        const mouseY = event.clientY - rect.top
-        simulation.trackedBody = getClosestBodyClick(mouseX, mouseY)
+        simulation.trackedBody = hoverBody
     })
     document.addEventListener("mousemove", function (event) {
         const rect = canvas.getBoundingClientRect()
-        const mouseX = event.clientX - rect.left
-        const mouseY = event.clientY - rect.top
-        const body = getClosestBodyClick(mouseX, mouseY)
-        if (body !== null) {
-            document.getElementById("body-label").innerText = `Body: ${getClosestBodyClick(mouseX, mouseY).name}`
-        } else {
-            document.getElementById("body-label").innerText = ""
-        }
+        mouse.position.x = event.clientX - rect.left
+        mouse.position.y = event.clientY - rect.top
     })
     document.addEventListener("wheel", function (event) {
         if (event.x > 350) {
             let scaleFactor = Math.exp(-event.deltaY * 0.001)
             ctx.scale(scaleFactor, scaleFactor)
         }
+    })
+    document.addEventListener("dragend", function (event) {
+        console.log(event.movementX, event.movementY)
     })
     // TODO: add dragging
 </script>

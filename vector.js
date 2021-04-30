@@ -20,6 +20,14 @@ class Vector {
     }
 
     /**
+     * Returns a copy of the Vector.
+     * @return {Vector}
+     */
+    copy() {
+        return new Vector(this.x, this.y)
+    }
+
+    /**
      * Returns the angle of the Vector(in radians).
      * @returns {number}
      */
