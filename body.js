@@ -12,7 +12,7 @@ class Body {
      */
     constructor(name, position, mass, velocity, radius, color, trailLength, trailSteps) {
         this.name = name
-        this.postion = position
+        this.position = position
         this.mass = mass
         this.velocity = velocity
         this.radius = radius
@@ -34,8 +34,8 @@ class Body {
      */
     applyForceFromBody(other) {
         const G = 6.67e-11
-        let forceMag = G * this.mass * other.mass / this.postion.sub(other.postion).length2
-        this.force = this.force.add(Vector.fromPolar(forceMag, other.postion.sub(this.postion).angle))
+        let forceMag = G * this.mass * other.mass / this.position.sub(other.position).length2
+        this.force = this.force.add(Vector.fromPolar(forceMag, other.position.sub(this.position).angle))
     }
 
     /**
@@ -46,12 +46,12 @@ class Body {
      */
     updatePosition(dt) {
         if (this.currentTrailStep === 0) {
-            this.trail.unshift(this.postion)
+            this.trail.unshift(this.position)
             if (this.trail.length > this.trailLength) this.trail.pop()
         }
         this.currentTrailStep = (this.currentTrailStep + 1) % this.trailSteps
 
-        this.postion = this.postion.add(this.velocity.scale(dt))
+        this.position = this.position.add(this.velocity.scale(dt))
         this.velocity = this.velocity.add(this.force.scale(dt / this.mass))
         this.force = new Vector()
     }
@@ -62,7 +62,7 @@ class Body {
      * @return {Body}
      */
     #getNullReference() {
-        let reference = new Body("", new Vector(), 0, new Vector(), 0, "", this.trail.length)
+        let reference = new Body("", new Vector(), 0, new Vector(), 0, "", this.trail.length, this.trailSteps)
         for (let i = 0; i < this.trail.length; i++) reference.trail.push(new Vector())
         return reference
     }
@@ -71,11 +71,12 @@ class Body {
      * Renders the Body on the given ctx, with relation to reference.
      * @param {CanvasRenderingContext2D} ctx - the context to use for drawing
      * @param {?Body} reference - the reference object
+     * @param {Vector} translation - the translation relative to reference
      */
-    renderBody(ctx, reference) {
+    renderBody(ctx, reference, translation) {
         if (reference === null) reference = this.#getNullReference()
 
-        let position = this.postion.sub(reference.postion)
+        let position = this.position.sub(reference.position.add(translation))
         ctx.fillStyle = this.color
         ctx.beginPath()
         ctx.arc(position.x, position.y, this.radius, 0, 2 * Math.PI)
@@ -86,18 +87,19 @@ class Body {
      * Renders the Body's trail with relation to reference
      * @param {CanvasRenderingContext2D} ctx - the context to use for drawing
      * @param {?Body} reference - the reference object
+     * @param {Vector} translation - the translation relative to reference
      */
-    renderTrail(ctx, reference) {
+    renderTrail(ctx, reference, translation) {
         if (reference === null) reference = this.#getNullReference()
 
-        let position = this.postion.sub(reference.postion)
+        let position = this.position.sub(reference.position.add(translation))
         if (this.trail.length > 0) {
             ctx.strokeStyle = this.color
             ctx.lineWidth = this.radius / 5
             ctx.beginPath()
             ctx.moveTo(position.x, position.y)
             for (let i = 0; i < Math.min(this.trail.length, reference.trail.length); i++) {
-                let point = this.trail[i].sub(reference.trail[i])
+                let point = this.trail[i].sub(reference.trail[i].add(translation))
                 ctx.lineTo(point.x, point.y)
             }
             ctx.stroke()

@@ -143,7 +143,9 @@ class Simulation {
             }
         }
         this.bodies.push(...this.planets, ...this.moons)
+        /** @type {?Body}*/
         this.trackedBody = null
+        this.translation = new Vector()
     }
 
     /**
@@ -168,14 +170,12 @@ class Simulation {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
         this.ctx.restore()
 
-        if (this.sun !== null) {
-            this.sun.renderTrail(this.ctx, this.trackedBody)
-            this.sun.renderBody(this.ctx, this.trackedBody)
-        }
-        for (const planet of this.planets) planet.renderTrail(this.ctx, this.trackedBody)
-        for (const planet of this.planets) planet.renderBody(this.ctx, this.trackedBody)
-        for (const planetMoon of this.moons) planetMoon.renderTrail(this.ctx, this.trackedBody)
-        for (const planetMoon of this.moons) planetMoon.renderBody(this.ctx, this.trackedBody)
+        if (this.sun !== null) this.sun.renderTrail(this.ctx, this.trackedBody, this.translation)
+        for (const planet of this.planets) planet.renderTrail(this.ctx, this.trackedBody, this.translation)
+        if (this.sun !== null) this.sun.renderBody(this.ctx, this.trackedBody, this.translation)
+        for (const planet of this.planets) planet.renderBody(this.ctx, this.trackedBody, this.translation)
+        for (const planetMoon of this.moons) planetMoon.renderTrail(this.ctx, this.trackedBody, this.translation)
+        for (const planetMoon of this.moons) planetMoon.renderBody(this.ctx, this.trackedBody, this.translation)
     }
 
     /**
@@ -186,5 +186,25 @@ class Simulation {
             for (let i = 0; i < this.calculationsPerFrame; i++) this.#calculate()
         }
         this.#render()
+    }
+
+    /**
+     *
+     * @param {Vector} position
+     */
+    getClosestBody(position) {
+        let closestBody = null, closestDistance2 = Infinity;
+        let clickPos = position.add(this.translation)
+        if (this.trackedBody !== null) {
+            clickPos = position.add(this.trackedBody.position).add(this.translation)
+        }
+        for (const body of this.bodies) {
+            let clickDistance2 = body.position.sub(clickPos).length2
+            if (clickDistance2 < body.radius * body.radius && clickDistance2 < closestDistance2) {
+                closestBody = body
+                closestDistance2 = clickDistance2
+            }
+        }
+        return closestBody
     }
 }

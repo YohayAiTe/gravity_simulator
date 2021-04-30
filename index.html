@@ -74,8 +74,8 @@
             the distance between the masses).
         </p>
         <p>
-            Right-click a body to look at the system from its point-of-view. Scroll to zoom-in or zoom-out. Press the
-            space-bar to pause/unpause the simulation.
+            Hold left-click and drag to move around. Right-click a body to look at the system from its point-of-view.
+            Scroll to zoom-in or zoom-out. Press the space-bar to pause/unpause the simulation.
         </p>
         <p>
             The sun's radius is 50 times bigger than reality, the planets' radii is 1000 times bigger and the moons'
@@ -130,8 +130,8 @@
     let ctxScale = Math.min(canvas.width, canvas.height) / (5 * 1.52e11)
     ctx.scale(ctxScale, ctxScale)
     let simulation = new Simulation(ctx, 1e2, 1e4, 480, 480, ["sun", "mercury", "venus", "earth", "mars", "moon"])
-    /** @type {{position: Vector, isDown: boolean, clickPosition: Vector}} */
-    let mouse = {position: new Vector(), isDown: false, clickPosition: new Vector()};
+    /** @type {{position: Vector, isDown: boolean, lastPosition: Vector}} */
+    let mouse = {position: new Vector(), isDown: false, lastPosition: new Vector()};
     /** @type {?Body} */
     let hoverBody = null
 
@@ -186,17 +186,7 @@
         let clickPos = mouse.position.sub(new Vector(matrix.e, matrix.f))
         clickPos.x /= matrix.a
         clickPos.y /= matrix.d
-        if (simulation.trackedBody !== null) clickPos = clickPos.add(simulation.trackedBody.postion)
-
-        let closestBody = null, closestDistance2 = Infinity;
-        for (const body of simulation.bodies) {
-            let clickDistance2 = body.postion.sub(clickPos).length2
-            if (clickDistance2 < body.radius * body.radius && clickDistance2 < closestDistance2) {
-                closestBody = body
-                closestDistance2 = clickDistance2
-            }
-        }
-        return closestBody
+        return simulation.getClosestBody(clickPos)
     }
 
     document.addEventListener("keydown", function (event) {
@@ -206,7 +196,6 @@
         }
     })
     document.addEventListener("mousedown", function () {
-        mouse.clickPosition = mouse.position.copy()
         mouse.isDown = true
     })
     document.addEventListener("mouseup", function () {
@@ -220,15 +209,20 @@
         const rect = canvas.getBoundingClientRect()
         mouse.position.x = event.clientX - rect.left
         mouse.position.y = event.clientY - rect.top
+        if (mouse.isDown) {
+            const matrix = ctx.getTransform()
+            const change = mouse.lastPosition.sub(mouse.position)
+            change.x /= matrix.a
+            change.y /= matrix.d
+            simulation.translation = simulation.translation.add(change)
+        }
+        mouse.lastPosition = mouse.position.copy()
     })
     document.addEventListener("wheel", function (event) {
         if (event.x > 350) {
             let scaleFactor = Math.exp(-event.deltaY * 0.001)
             ctx.scale(scaleFactor, scaleFactor)
         }
-    })
-    document.addEventListener("dragend", function (event) {
-        console.log(event.movementX, event.movementY)
     })
     // TODO: add dragging
 </script>
