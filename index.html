@@ -103,6 +103,10 @@
         <label><input type="checkbox" value="moon" checked> The Moon(Earth)</label><br>
         <label><input type="checkbox" value="phobos"> Phobos(Mars)</label><br>
         <label><input type="checkbox" value="deimos"> Deimos(Mars)</label><br>
+        <label><input type="checkbox" value="io"> Io(Jupiter)</label><br>
+        <label><input type="checkbox" value="europa"> Europa(Jupiter)</label><br>
+        <label><input type="checkbox" value="ganymede"> Ganymede(Jupiter)</label><br>
+        <label><input type="checkbox" value="callisto"> Callisto(Jupiter)</label><br>
 
         <h3>Settings</h3>
         <label title="The time difference between calculations. Smaller values will result in more accurate orbits but will require more compute-time.">
@@ -115,7 +119,10 @@
             Calculations per Frame: <input type="number" id="cpf-input" value="480"></label><br>
 
         <br>
-        <button value="Recreate" onclick="recreate()">Recreate</button>
+        <button value="Recreate" onclick="recreate()"
+                style="margin-bottom: 10px; width: 150px; font: 20px Arial; margin-left: 75px">
+            Recreate
+        </button>
     </div>
     <canvas id="render-canvas" style="left: 350px"></canvas>
 </body>
@@ -126,10 +133,8 @@
     canvas.height = window.innerHeight
     const ctx = canvas.getContext("2d")
 
-    ctx.translate(canvas.width / 2, canvas.height / 2)
-    let ctxScale = Math.min(canvas.width, canvas.height) / (5 * 1.52e11)
-    ctx.scale(ctxScale, ctxScale)
-    let simulation = new Simulation(ctx, 1e2, 1e4, 480, 480, ["sun", "mercury", "venus", "earth", "mars", "moon"])
+    /** @type {Simulation} */
+    let simulation = null
     /** @type {{position: Vector, isDown: boolean, lastPosition: Vector}} */
     let mouse = {position: new Vector(), isDown: false, lastPosition: new Vector()};
     /** @type {?Body} */
@@ -146,7 +151,14 @@
             parseInt(document.getElementById("cpt-input").value),
             parseInt(document.getElementById("cpf-input").value),
             bodies)
+
+        let farthestBody = simulation.bodies[0]
+        for (const body of simulation.bodies) if (body.position.length > farthestBody.position.length) farthestBody = body
+        let ctxScale = Math.min(canvas.width, canvas.height) / Math.abs(farthestBody.position.length * 2.5)
+        ctx.setTransform(ctxScale, 0, 0, ctxScale, canvas.width / 2, canvas.height / 2)
     }
+
+    recreate()
 
     let requestAnimation = window.requestAnimationFrame(frameFunc)
 
@@ -204,7 +216,7 @@
     document.addEventListener("contextmenu", function (event) {
         event.preventDefault()
         simulation.trackedBody = hoverBody
-        this.translation = new Vector()
+        simulation.translation = new Vector()
     })
     document.addEventListener("mousemove", function (event) {
         const rect = canvas.getBoundingClientRect()
@@ -225,6 +237,5 @@
             ctx.scale(scaleFactor, scaleFactor)
         }
     })
-    // TODO: add dragging
 </script>
 </html>

@@ -101,6 +101,38 @@ class Simulation {
             radius: 6.2e3,
             color: "white"
         },
+        "io": {
+            name: "Io(Jupiter)",
+            position: new Vector(-8.16618e11, 423.4e6),
+            mass: 8.931938e22,
+            velocity: new Vector(17.334e3, 1.244e4),
+            radius: 1821.6e3,
+            color: "khaki"
+        },
+        "europa": {
+            name: "Europa(Jupiter)",
+            position: new Vector(-8.16618e11, 676.938e6),
+            mass: 4.799844e22,
+            velocity: new Vector(13.740e3, 1.244e4),
+            radius: 1560.8e3,
+            color: "azure"
+        },
+        "ganymede": {
+            name: "Ganymede(Jupiter)",
+            position: new Vector(-8.16618e11, 1071.6e6),
+            mass: 1.4819e23,
+            velocity: new Vector(10.880e3, 1.244e4),
+            radius: 2634.1e3,
+            color: "bisque"
+        },
+        "callisto": {
+            name: "Callisto(Jupiter)",
+            position: new Vector(-8.16618e11, 1897e6),
+            mass: 1.075938e23,
+            velocity: new Vector(8.204e3, 1.244e4),
+            radius: 2410.3e3,
+            color: "burlywood"
+        },
     }
 
     /**
